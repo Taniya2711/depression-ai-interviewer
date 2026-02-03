@@ -1,0 +1,233 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+<style>
+#chat{
+ width:60%;
+ height:400px;
+ border:1px solid black;
+ margin:auto;
+ padding:10px;
+ overflow:auto;
+}
+</style>
+</head>
+
+<body>
+
+<h2 align="center">Depression Interview</h2>
+
+<div id="chat"></div>
+
+<center>
+<button onclick="start()">Start</button>
+<button onclick="listen()">Speak</button>
+</center>
+
+<script>
+const chat=document.getElementById("chat");
+
+function add(w,t){
+ chat.innerHTML+=`<p><b>${w}:</b> ${t}</p>`;
+}
+
+async function start(){
+ let r=await fetch("/start");
+ let d=await r.json();
+ add("AI",d.q);
+}
+
+function listen(){
+ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ const rec=new SpeechRecognition();
+
+ rec.onresult=async e=>{
+  let t=e.results[0][0].transcript;
+  add("You",t);
+
+  let r=await fetch("/reply?text="+encodeURIComponent(t));
+  let d=await r.json();
+  add("AI",d.q);
+ }
+
+ rec.start();
+}
+</script>
+
+</body>
+</html> -->
+<!DOCTYPE html>
+<html>
+<head>
+<!-- <style>
+#chat{
+ width:60%;
+ height:400px;
+ border:1px solid black;
+ margin:auto;
+ padding:10px;
+ overflow:auto;
+}
+</style> -->
+<style>
+body {
+  background:#ece5dd;
+  font-family: Arial, sans-serif;
+}
+
+#chat{
+  width:60%;
+  height:420px;
+  margin:20px auto;
+  background:#f7f7f7;
+  padding:15px;
+  overflow-y:auto;
+  border-radius:10px;
+}
+
+/* Common bubble */
+.msg{
+  max-width:70%;
+  padding:10px 14px;
+  margin:8px 0;
+  border-radius:12px;
+  clear:both;
+}
+
+/* AI = left */
+.ai{
+  background:#ffffff;
+  float:left;
+  border-top-left-radius:0;
+}
+
+/* You = right */
+.user{
+  background:#dcf8c6;
+  float:right;
+  border-top-right-radius:0;
+}
+
+.controls{
+  text-align:center;
+  margin-top:10px;
+}
+
+button{
+  padding:10px 18px;
+  margin:5px;
+  border:none;
+  border-radius:20px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h2 align="center">Depression Interview</h2>
+
+<div id="chat"></div>
+
+<div class="controls">
+<button onclick="start()">Start</button>
+<button onclick="listen()">Speak</button>
+<button onclick="stopListening()">Stop</button>
+</div>
+
+<!-- <script>
+const chat=document.getElementById("chat");
+
+function speak(text){
+ const u = new SpeechSynthesisUtterance(text);
+ speechSynthesis.speak(u);
+}
+
+function add(w,t){
+ chat.innerHTML+=`<p><b>${w}:</b> ${t}</p>`;
+ chat.scrollTop = chat.scrollHeight;
+
+ if(w==="AI") speak(t);   // 🔥 AI speaks here
+}
+
+async function start(){
+ let r=await fetch("/start");
+ let d=await r.json();
+ add("AI",d.q);
+}
+
+function listen(){
+ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ const rec=new SpeechRecognition();
+
+ rec.onresult=async e=>{
+  let t=e.results[0][0].transcript;
+  add("You",t);
+
+  let r=await fetch("/reply?text="+encodeURIComponent(t));
+  let d=await r.json();
+  add("AI",d.q);
+ }
+
+ rec.start();
+}
+</script> -->
+<script>
+const chat=document.getElementById("chat");
+
+let recognition;
+
+function speak(text){
+ const u = new SpeechSynthesisUtterance(text);
+ speechSynthesis.speak(u);
+}
+
+function add(w,t){
+
+ let cls = (w==="AI") ? "ai" : "user";
+
+ chat.innerHTML += `<div class="msg ${cls}">${t}</div>`;
+ chat.scrollTop = chat.scrollHeight;
+
+ if(w==="AI") speak(t);
+}
+
+async function start(){
+ let r=await fetch("/start");
+ let d=await r.json();
+ add("AI",d.q);
+}
+
+function listen(){
+ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ recognition=new SpeechRecognition();
+
+ recognition.continuous=true;
+ recognition.interimResults=false;
+
+ recognition.onresult=e=>{
+   window.lastTranscript=e.results[e.results.length-1][0].transcript;
+ }
+
+ recognition.start();
+}
+
+async function stopListening(){
+
+ if(!recognition) return;
+
+ recognition.stop();
+
+ let text = window.lastTranscript || "";
+
+ if(text==="") return;
+
+ add("You",text);
+
+ let r=await fetch("/reply?text="+encodeURIComponent(text));
+ let d=await r.json();
+ add("AI",d.q);
+}
+</script>
+</body>
+</html>
