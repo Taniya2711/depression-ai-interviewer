@@ -11,7 +11,7 @@ import numpy as np
 from audio_utils import extract_features_from_file
 
 # Path to the pretrained model file
-MODEL_PATH = os.environ.get("PHQ_MODEL_PATH", "phq_model.pkl")
+MODEL_PATH = os.environ.get("PHQ_MODEL_PATH", "phq_xgb.pkl")
 
 # Global model (loaded once, None if demo mode)
 _model = None
@@ -34,7 +34,7 @@ def load_model(model_path: str = None):
         _demo_mode = True
         print(f"⚠️  Model not found at {model_path}")
         print("   Running in DEMO MODE - will return mock scores")
-        print("   To enable real predictions, add phq_model.pkl file")
+        print("   To enable real predictions, add phq_xgb.pkl file")
         return None
     
     with open(model_path, "rb") as f:
@@ -90,7 +90,7 @@ def predict_phq(audio_path: str) -> dict:
         "phq_score": round(mock_score, 2),
         "demo_mode": True,
         "features_extracted": True,
-        "message": "Demo mode - using mock PHQ score. Real predictions require phq_model.pkl"
+        "message": "Demo mode - using mock PHQ score. Real predictions require phq_xgb.pkl"
     }
 
 
