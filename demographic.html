@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Participant Information | MindSpace</title>
+    <link rel="stylesheet" href="demographic.css">
+</head>
+<body>
+
+<div class="page">
+
+    <!-- HERO HEADER -->
+    <div class="hero">
+        <div class="brain">🧠</div>
+        <h1>MindSpace – Depression AI Interviewer</h1>
+        <p>Compassionate AI-powered mental health screening</p>
+    </div>
+
+    <div class="card">
+
+        <h2 class="form-title">Participant Information</h2>
+        <p class="subtitle">Before we begin, please provide some basic information.</p>
+
+        <!-- BASIC INFO -->
+        <section>
+            <h3>Basic Information</h3>
+            <div class="grid">
+                <input type="number" placeholder="Age">
+                <select>
+                    <option selected disabled>Gender</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Non-binary</option>
+                    <option>Prefer not to say</option>
+                </select>
+                <input type="text" placeholder="Country / Region">
+            </div>
+        </section>
+
+        <!-- ACADEMIC -->
+        <section>
+            <h3>Academic / Professional Context</h3>
+            <div class="grid">
+                <select>
+                    <option selected disabled>Current Role</option>
+                    <option>Undergraduate Student</option>
+                    <option>Postgraduate Student</option>
+                    <option>Working Professional</option>
+                    <option>Other</option>
+                </select>
+                <select>
+                    <option selected disabled>Current Stage</option>
+                    <option>Early Stage</option>
+                    <option>Mid Stage</option>
+                    <option>Final Year</option>
+                </select>
+                <select>
+                    <option selected disabled>Primary Focus</option>
+                    <option>Academics</option>
+                    <option>Research</option>
+                    <option>Job / Internship Search</option>
+                    <option>Competitive Exams</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- LIFESTYLE -->
+        <section>
+            <h3>Lifestyle & Routine</h3>
+            <div class="grid">
+                <select>
+                    <option selected disabled>Average Sleep Duration</option>
+                    <option>&lt; 5 hours</option>
+                    <option>5–6 hours</option>
+                    <option>6–7 hours</option>
+                    <option>7+ hours</option>
+                </select>
+                <select>
+                    <option selected disabled>Daily Workload</option>
+                    <option>Low</option>
+                    <option>Moderate</option>
+                    <option>High</option>
+                    <option>Very High</option>
+                </select>
+                <select>
+                    <option selected disabled>Daily Screen Time</option>
+                    <option>&lt; 4 hours</option>
+                    <option>4–6 hours</option>
+                    <option>6–8 hours</option>
+                    <option>8+ hours</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- SUPPORT -->
+        <section>
+            <h3>Living & Support Environment</h3>
+            <div class="grid">
+                <select>
+                    <option selected disabled>Living Situation</option>
+                    <option>With Family</option>
+                    <option>Hostel</option>
+                    <option>Alone</option>
+                    <option>Shared Accommodation</option>
+                </select>
+                <select>
+                    <option selected disabled>Support System Availability</option>
+                    <option>Strong</option>
+                    <option>Moderate</option>
+                    <option>Limited</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- STRESSORS -->
+        <section>
+            <h3>Recent Stressors (Optional)</h3>
+            <div class="checkboxes">
+                <label><input type="checkbox"> Academic pressure</label>
+                <label><input type="checkbox"> Career uncertainty</label>
+                <label><input type="checkbox"> Financial concerns</label>
+                <label><input type="checkbox"> Family issues</label>
+                <label><input type="checkbox"> Health concerns</label>
+            </div>
+        </section>
+
+        <!-- CV UPLOAD -->
+        <section>
+            <h3>Optional Resume / CV Upload</h3>
+
+            <div class="upload-box" onclick="triggerUpload()">
+                <div id="uploadContent">
+                    <span id="uploadText">Drag & drop your CV here<br>or click to browse (PDF only)</span>
+                </div>
+                <input type="file" id="cvInput" accept="application/pdf" hidden>
+            </div>
+
+            <div class="progress hidden" id="progressContainer">
+                <div id="progressBar"></div>
+            </div>
+        </section>
+
+        <button class="primary-btn" onclick="continueInterview()">
+            Continue to Interview
+        </button>
+
+    </div>
+</div>
+
+<script src="demographic.js"></script>
+</body>
+</html>
