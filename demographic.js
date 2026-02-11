@@ -2,8 +2,12 @@
 
 async function continueInterview() {
     const statusMsg = document.getElementById('statusMessage');
-    statusMsg.textContent = 'Submitting...';
-    statusMsg.style.color = '#94a3b8';
+    const btn = document.querySelector('.primary-btn');
+    
+    // Animate button to loading state
+    btn.classList.add('loading');
+    btn.innerHTML = '<span class="btn-spinner"></span> Saving your information...';
+    statusMsg.textContent = '';
     
     try {
         // Collect stressors from checkboxes
@@ -44,19 +48,28 @@ async function continueInterview() {
         console.log("Response:", response.status, result);
 
         if (response.ok) {
-            statusMsg.textContent = 'Success! Redirecting to interview...';
+            btn.innerHTML = '<span style="margin-right:6px;">✓</span> Success!';
+            statusMsg.textContent = 'Redirecting to interview...';
             statusMsg.style.color = '#10b981';
             
-            // Redirect to interview page
+            // Show page transition overlay
+            const transition = document.getElementById('pageTransition');
+            if (transition) transition.classList.add('active');
+            
+            // Redirect to interview page with a smooth delay
             setTimeout(() => {
                 window.location.href = "/interview";
-            }, 500);
+            }, 1200);
         } else {
+            btn.classList.remove('loading');
+            btn.innerHTML = 'Continue to Interview  →';
             statusMsg.textContent = 'Error: ' + (result.detail || 'Submission failed');
             statusMsg.style.color = '#ef4444';
             console.error("Form submission failed:", result);
         }
     } catch (error) {
+        btn.classList.remove('loading');
+        btn.innerHTML = 'Continue to Interview  →';
         statusMsg.textContent = 'Error: ' + error.message;
         statusMsg.style.color = '#ef4444';
         console.error("Error:", error);

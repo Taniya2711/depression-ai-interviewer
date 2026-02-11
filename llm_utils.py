@@ -15,8 +15,27 @@ except ImportError:
     GENAI_AVAILABLE = False
     print("[WARNING] google-generativeai not installed. Install with: pip install google-generativeai")
 
+
+def load_api_key_from_env_file():
+    """Load GEMINI_API_KEY from .env file if it exists."""
+    env_file_path = os.path.join(os.path.dirname(__file__), ".env")
+    if os.path.exists(env_file_path):
+        try:
+            with open(env_file_path, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, value = line.split("=", 1)
+                        if key.strip() == "GEMINI_API_KEY":
+                            return value.strip().strip('"\'')
+        except Exception as e:
+            print(f"[WARNING] Error reading .env file: {e}")
+    return None
+
+
 # Configuration
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+# Check environment variable first, then .env file
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or load_api_key_from_env_file() or ""
 MODEL_NAME = "gemini-2.5-flash"
 
 # Hardcoded fallback questions (PHQ-8 based)
@@ -179,11 +198,15 @@ User Profile:
 {demo_context}
 
 Requirements:
-1. Questions should be empathetic, non-judgmental, and conversational and dont include any placeholder entities in the question like [name] [school] etc, assume or do reasoning when ambigius or no info
-2. Tailor questions to the user's context (student, professional, etc.)
-3. Cover key PHQ-8 domains: mood, interest/pleasure, sleep, energy, appetite, self-worth, concentration
-4. Start with a warm greeting that acknowledges their situation
-5. Questions should feel natural, not clinical
+1. Questions should be empathetic, non-judgmental, and conversational
+2. Do NOT include any placeholder entities like [name] [school] etc — assume or reason when ambiguous
+3. Tailor questions to the user's context (student, professional, etc.)
+4. Cover key PHQ-8 domains: mood, interest/pleasure, sleep, energy, appetite, self-worth, concentration
+5. Start with a warm greeting that acknowledges their situation
+6. NAME RULES (CRITICAL):
+   - If a name IS in the profile: use their EXACT first name in ONLY 2 of the 5 questions (e.g. questions 1 and 3). The other 3 should NOT use the name at all — this keeps it natural.
+   - If NO name is in the profile: NEVER guess or invent a name. Use "you" or conversational phrasing.
+7. Questions should feel natural, not clinical
 
 Output Format: Return ONLY a JSON array of 5 questions, nothing else.
 Example: ["Question 1", "Question 2", "Question 3", "Question 4", "Question 5"]
@@ -264,23 +287,25 @@ Generate ONE short, highly personalized follow-up question.
 
 CRITICAL REQUIREMENTS:
 1. Be VERY SHORT - 10-20 words maximum
-2. If their name is provided in the profile, ALWAYS use their EXACT NAME when addressing them
-3. If no name is provided, use "you" or be conversational without a name
-4. Reference SPECIFIC details from their profile or previous answers (role, stressors, living situation, etc.)
-5. DO NOT ask generic questions - make it feel like you know them personally
-6. Build on what they've shared before (if any conversation history exists)
-7. Be warm and conversational, like a caring friend checking in
-8. Avoid clinical language - keep it natural
+2. NAME USAGE RULES (VERY IMPORTANT):
+   - If a name IS provided in the profile: use their EXACT first name in ONLY 2 out of every 5 questions (questions 1 and 3, or 2 and 4). The rest should NOT use the name — this feels more natural.
+   - If NO name is provided: NEVER guess or invent a name. Just use "you" or be conversational.
+   - Current question is #{question_number} — decide accordingly whether to include the name or not.
+3. Reference SPECIFIC details from their profile or previous answers (role, stressors, living situation, etc.)
+4. DO NOT ask generic questions - make it feel like you know them personally
+5. Build on what they've shared before (if any conversation history exists)
+6. Be warm and conversational, like a caring friend checking in
+7. Avoid clinical language - keep it natural
 
-Examples of GOOD personalized questions (short & specific):
-- "Hey Sarah, how has your hostel life been affecting your sleep lately?" (with name)
-- "You mentioned feeling overwhelmed with academics - what's been the hardest part?" (without name)
-- "With your mid-stage studies, do you still find joy in learning?"
+Examples of GOOD personalized questions:
+- With name (use sparingly): "Hey Sarah, how's hostel life been affecting your sleep?"
+- Without name (most questions): "You mentioned academic pressure — what's been weighing on you most?"
+- Without name: "With your mid-stage studies, do you still find joy in learning?"
 
-Examples of BAD generic questions (avoid these):
-- "How have you been feeling lately?"
-- "Can you tell me about your sleep?"
-- "Are you experiencing any stress?"
+Examples of BAD questions (avoid these):
+- "How have you been feeling lately?" (too generic)
+- "Can you tell me about your sleep?" (too clinical)
+- "Dear friend, how are you?" (never invent names or use generic terms of address)
 
 Return ONLY the question text, nothing else. No quotes, no explanation."""
     
@@ -333,6 +358,10 @@ User Profile:
 Screening Result:
 - PHQ-8 Score: {phq_score}/24
 - Severity Level: {severity.replace('_', ' ').title()}
+
+IMPORTANT NAME RULES:
+- If a name IS in the profile: use their first name ONCE in the summary or encouragement, not everywhere.
+- If NO name is in the profile: NEVER guess or invent a name. Use "you" or general phrasing.
 
 Return a JSON object with this exact structure:
 {{

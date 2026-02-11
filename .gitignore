@@ -11,6 +11,9 @@ ENV/
 dist/
 build/
 
+# Environment variables
+.env
+
 # Model files
 *.pkl
 *.h5

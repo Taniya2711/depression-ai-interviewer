@@ -465,6 +465,152 @@
             50% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
         }
 
+        /* ===== LOADING BAR (shown during LLM generation) ===== */
+        .loading-bar-container {
+            padding: 0 25px;
+            display: none;
+        }
+
+        .loading-bar-container.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .loading-bar-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .loading-bar-label .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--bg-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-bar {
+            height: 4px;
+            background: var(--bg-light);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -40%;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent);
+            border-radius: 4px;
+            animation: shimmer 1.4s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -40%; }
+            100% { left: 100%; }
+        }
+
+        /* Processing overlay inside chat */
+        .processing-bubble {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: var(--bg-surface);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            animation: messageSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .processing-bubble .mini-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid var(--bg-light);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            flex-shrink: 0;
+        }
+
+        .processing-bubble .processing-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            animation: processingPulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes processingPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Smooth transitions for all interactive elements */
+        .message-bubble {
+            transition: opacity 0.2s ease;
+        }
+
+        .chat-container {
+            scroll-behavior: smooth;
+        }
+
+        /* Results loading spinner */
+        .results-loading {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 40px 20px;
+        }
+
+        .results-loading.active {
+            display: flex;
+        }
+
+        .results-loading .big-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--bg-light);
+            border-top-color: var(--primary);
+            border-right-color: var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .results-loading .loading-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            animation: processingPulse 1.8s ease-in-out infinite;
+        }
+
+        /* Score counter animation */
+        .score-value {
+            transition: all 0.3s ease;
+        }
+
+        /* Stagger animation for recommendation items */
+        .recommendation-list li, .resources-list li {
+            opacity: 0;
+            animation: staggerIn 0.4s ease forwards;
+        }
+
+        @keyframes staggerIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
         /* Results Panel */
         .results-overlay {
             position: fixed;
@@ -884,6 +1030,15 @@
                 </div>
             </div>
 
+            <!-- Loading bar for AI generation -->
+            <div class="loading-bar-container" id="loadingBar">
+                <div class="loading-bar-label">
+                    <div class="spinner"></div>
+                    <span id="loadingBarText">Generating personalized question...</span>
+                </div>
+                <div class="loading-bar"></div>
+            </div>
+
             <div class="transcription-box" id="transcriptionBox">
                 <div class="transcription-label">
                     <div class="recording-dot"></div>
@@ -940,6 +1095,13 @@
     <!-- Results Overlay -->
     <div class="results-overlay" id="resultsOverlay">
         <div class="results-card results-card-large">
+            <!-- Results loading spinner -->
+            <div class="results-loading" id="resultsLoading">
+                <div class="big-spinner"></div>
+                <span class="loading-text">Generating your personalized report...</span>
+            </div>
+
+            <div id="resultsContent">
             <div class="results-icon">📊</div>
             <h2 class="results-title">Your Results</h2>
             <div class="score-display">
@@ -981,6 +1143,7 @@
             <p class="disclaimer">
                 <strong>Important:</strong> This is a screening tool only — it does not replace professional diagnosis. Please consult a qualified healthcare provider for proper evaluation and treatment.
             </p>
+            </div><!-- end resultsContent -->
         </div>
     </div>
 
@@ -1081,6 +1244,17 @@
             }
         }
 
+        // === Loading bar helpers ===
+        function showLoadingBar(text = 'Generating personalized question...') {
+            const bar = document.getElementById('loadingBar');
+            document.getElementById('loadingBarText').textContent = text;
+            bar.classList.add('active');
+        }
+
+        function hideLoadingBar() {
+            document.getElementById('loadingBar').classList.remove('active');
+        }
+
         function showTyping() {
             const typingDiv = document.createElement('div');
             typingDiv.className = 'message ai';
@@ -1100,16 +1274,43 @@
             if (typing) typing.remove();
         }
 
+        function showProcessingBubble(text = 'Analyzing your response...') {
+            const div = document.createElement('div');
+            div.className = 'message ai';
+            div.id = 'processingBubble';
+            div.innerHTML = `
+                <div class="avatar">🤖</div>
+                <div class="processing-bubble">
+                    <div class="mini-spinner"></div>
+                    <span class="processing-text">${text}</span>
+                </div>
+            `;
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function hideProcessingBubble() {
+            const el = document.getElementById('processingBubble');
+            if (el) el.remove();
+        }
+
         async function startInterview() {
             try {
                 // Hide mode selectors after starting
                 document.getElementById('modeSelector').classList.add('hidden');
                 document.getElementById('questionModeSelector').classList.add('hidden');
                 
-                // Pass llm_mode based on question mode selection
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;"></span> Starting...';
+                
+                // Show loading bar while LLM generates first question
                 const useLLM = questionMode === 'llm';
+                if (useLLM) showLoadingBar('Personalizing your interview experience...');
+                
                 const response = await fetch(`/start?llm_mode=${useLLM}`);
                 const data = await response.json();
+                
+                hideLoadingBar();
                 
                 totalQuestions = data.total_questions || 8;
                 currentQuestion = 1;
@@ -1141,6 +1342,9 @@
                 recordBtn.disabled = false;
             } catch (error) {
                 console.error('Error:', error);
+                hideLoadingBar();
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<span>🎯</span> Start Interview';
                 addMessage('Sorry, there was an error starting the interview. Please refresh and try again.', true);
             }
         }
@@ -1234,6 +1438,10 @@
             const lastTranscript = liveTranscript;  // Store before clearing
             addMessage(userMessage, false);
 
+            // Show processing state
+            showProcessingBubble('Analyzing your response...');
+            showLoadingBar('Processing audio & preparing next question...');
+
             // Send audio for analysis with mode parameter
             const formData = new FormData();
             formData.append('audio', audioBlob, 'response.webm');
@@ -1246,10 +1454,14 @@
                     body: formData
                 });
 
+                hideProcessingBubble();
+
                 // Get next question with transcript for personalization
                 await getNextQuestion(lastTranscript);
             } catch (error) {
                 console.error('Error:', error);
+                hideProcessingBubble();
+                hideLoadingBar();
                 addMessage('Sorry, there was an error processing your response. Please try again.', true);
                 recordBtn.disabled = false;
                 recordBtn.style.display = 'flex';
@@ -1258,6 +1470,10 @@
 
         async function getNextQuestion(transcript = '') {
             try {
+                if (questionMode === 'llm') {
+                    showLoadingBar('AI is crafting your next question...');
+                }
+
                 const response = await fetch('/next_question', { 
                     method: 'POST',
                     headers: {
@@ -1267,17 +1483,19 @@
                 });
                 const data = await response.json();
 
+                hideLoadingBar();
                 showTyping();
-                await new Promise(r => setTimeout(r, 1000));
+                await new Promise(r => setTimeout(r, 800));
                 hideTyping();
 
                 if (data.completed) {
                     currentQuestion = totalQuestions;
                     updateProgress();
                     addMessage("Thank you for sharing with me today. Let me prepare your results...", true);
-                    updateStatus('Interview complete');
+                    updateStatus('Preparing your report...');
+                    showLoadingBar('Generating personalized recommendations...');
                     
-                    await new Promise(r => setTimeout(r, 2000));
+                    await new Promise(r => setTimeout(r, 1500));
                     await showResults();
                 } else {
                     currentQuestion = data.question_number;
@@ -1290,16 +1508,28 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
+                hideLoadingBar();
                 addMessage('Sorry, there was an error. Please try again.', true);
+                recordBtn.disabled = false;
+                recordBtn.style.display = 'flex';
             }
         }
 
         async function showResults() {
             try {
+                // Show the overlay with a loading spinner first
+                const resultsContent = document.getElementById('resultsContent');
+                const resultsLoadingEl = document.getElementById('resultsLoading');
+                resultsContent.style.display = 'none';
+                resultsLoadingEl.classList.add('active');
+                resultsOverlay.classList.add('active');
+
                 // Pass llm_mode for recommendation generation
                 const useLLM = questionMode === 'llm';
                 const response = await fetch(`/results?llm_mode=${useLLM}`);
                 const data = await response.json();
+
+                hideLoadingBar();
 
                 const score = data.average_phq_score;
                 const scorePercent = (score / 24) * 100;
@@ -1376,17 +1606,50 @@
                     document.getElementById('recommendationSection').style.display = 'block';
                 }
 
-                // Show overlay with animation
-                resultsOverlay.classList.add('active');
+                // Hide loading, show real content with staggered item animation
+                resultsLoadingEl.classList.remove('active');
+                resultsContent.style.display = 'block';
+
+                // Animate recommendation items with stagger
+                document.querySelectorAll('.recommendation-list li, .resources-list li').forEach((li, i) => {
+                    li.style.animationDelay = `${i * 0.1}s`;
+                });
+
+                // Animate score counter
+                animateScore(score);
 
             } catch (error) {
                 console.error('Error:', error);
+                hideLoadingBar();
+                const rl = document.getElementById('resultsLoading');
+                if (rl) rl.classList.remove('active');
+                const rc = document.getElementById('resultsContent');
+                if (rc) rc.style.display = 'block';
             }
+        }
+
+        function animateScore(target) {
+            const el = document.getElementById('scoreValue');
+            let current = 0;
+            const duration = 1200;
+            const step = 16;
+            const increment = target / (duration / step);
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                el.textContent = current.toFixed(1);
+            }, step);
         }
 
         function resetInterview() {
             // Reset UI
             resultsOverlay.classList.remove('active');
+            document.getElementById('resultsContent').style.display = 'block';
+            document.getElementById('resultsLoading').classList.remove('active');
+            hideLoadingBar();
             chatContainer.innerHTML = `
                 <div class="message ai">
                     <div class="avatar">🤖</div>

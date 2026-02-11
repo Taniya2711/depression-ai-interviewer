@@ -106,6 +106,7 @@ class RecommendationResponse(BaseModel):
 
 class DemographicData(BaseModel):
     """Data model for demographic information."""
+    name: Optional[str] = None
     age: Optional[str] = None
     gender: Optional[str] = None
     country: Optional[str] = None
