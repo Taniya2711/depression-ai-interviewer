@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Participant Information | MindSpace</title>
-    <link rel="stylesheet" href="demographic.css">
+    <link rel="stylesheet" href="/demographic.css">
 </head>
 <body>
 
@@ -25,15 +25,15 @@
         <section>
             <h3>Basic Information</h3>
             <div class="grid">
-                <input type="number" placeholder="Age">
-                <select>
-                    <option selected disabled>Gender</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Non-binary</option>
-                    <option>Prefer not to say</option>
+                <input type="number" id="age" placeholder="Age">
+                <select id="gender">
+                    <option value="" selected disabled>Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Non-binary">Non-binary</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
                 </select>
-                <input type="text" placeholder="Country / Region">
+                <input type="text" id="country" placeholder="Country / Region">
             </div>
         </section>
 
@@ -41,25 +41,25 @@
         <section>
             <h3>Academic / Professional Context</h3>
             <div class="grid">
-                <select>
-                    <option selected disabled>Current Role</option>
-                    <option>Undergraduate Student</option>
-                    <option>Postgraduate Student</option>
-                    <option>Working Professional</option>
-                    <option>Other</option>
+                <select id="role">
+                    <option value="" selected disabled>Current Role</option>
+                    <option value="Undergraduate Student">Undergraduate Student</option>
+                    <option value="Postgraduate Student">Postgraduate Student</option>
+                    <option value="Working Professional">Working Professional</option>
+                    <option value="Other">Other</option>
                 </select>
-                <select>
-                    <option selected disabled>Current Stage</option>
-                    <option>Early Stage</option>
-                    <option>Mid Stage</option>
-                    <option>Final Year</option>
+                <select id="stage">
+                    <option value="" selected disabled>Current Stage</option>
+                    <option value="Early Stage">Early Stage</option>
+                    <option value="Mid Stage">Mid Stage</option>
+                    <option value="Final Year">Final Year</option>
                 </select>
-                <select>
-                    <option selected disabled>Primary Focus</option>
-                    <option>Academics</option>
-                    <option>Research</option>
-                    <option>Job / Internship Search</option>
-                    <option>Competitive Exams</option>
+                <select id="focus">
+                    <option value="" selected disabled>Primary Focus</option>
+                    <option value="Academics">Academics</option>
+                    <option value="Research">Research</option>
+                    <option value="Job / Internship Search">Job / Internship Search</option>
+                    <option value="Competitive Exams">Competitive Exams</option>
                 </select>
             </div>
         </section>
@@ -68,26 +68,26 @@
         <section>
             <h3>Lifestyle & Routine</h3>
             <div class="grid">
-                <select>
-                    <option selected disabled>Average Sleep Duration</option>
-                    <option>&lt; 5 hours</option>
-                    <option>5–6 hours</option>
-                    <option>6–7 hours</option>
-                    <option>7+ hours</option>
+                <select id="sleep_duration">
+                    <option value="" selected disabled>Average Sleep Duration</option>
+                    <option value="< 5 hours">&lt; 5 hours</option>
+                    <option value="5-6 hours">5–6 hours</option>
+                    <option value="6-7 hours">6–7 hours</option>
+                    <option value="7+ hours">7+ hours</option>
                 </select>
-                <select>
-                    <option selected disabled>Daily Workload</option>
-                    <option>Low</option>
-                    <option>Moderate</option>
-                    <option>High</option>
-                    <option>Very High</option>
+                <select id="workload">
+                    <option value="" selected disabled>Daily Workload</option>
+                    <option value="Low">Low</option>
+                    <option value="Moderate">Moderate</option>
+                    <option value="High">High</option>
+                    <option value="Very High">Very High</option>
                 </select>
-                <select>
-                    <option selected disabled>Daily Screen Time</option>
-                    <option>&lt; 4 hours</option>
-                    <option>4–6 hours</option>
-                    <option>6–8 hours</option>
-                    <option>8+ hours</option>
+                <select id="screen_time">
+                    <option value="" selected disabled>Daily Screen Time</option>
+                    <option value="< 4 hours">&lt; 4 hours</option>
+                    <option value="4-6 hours">4–6 hours</option>
+                    <option value="6-8 hours">6–8 hours</option>
+                    <option value="8+ hours">8+ hours</option>
                 </select>
             </div>
         </section>
@@ -96,18 +96,18 @@
         <section>
             <h3>Living & Support Environment</h3>
             <div class="grid">
-                <select>
-                    <option selected disabled>Living Situation</option>
-                    <option>With Family</option>
-                    <option>Hostel</option>
-                    <option>Alone</option>
-                    <option>Shared Accommodation</option>
+                <select id="living_situation">
+                    <option value="" selected disabled>Living Situation</option>
+                    <option value="With Family">With Family</option>
+                    <option value="Hostel">Hostel</option>
+                    <option value="Alone">Alone</option>
+                    <option value="Shared Accommodation">Shared Accommodation</option>
                 </select>
-                <select>
-                    <option selected disabled>Support System Availability</option>
-                    <option>Strong</option>
-                    <option>Moderate</option>
-                    <option>Limited</option>
+                <select id="support_system">
+                    <option value="" selected disabled>Support System Availability</option>
+                    <option value="Strong">Strong</option>
+                    <option value="Moderate">Moderate</option>
+                    <option value="Limited">Limited</option>
                 </select>
             </div>
         </section>
@@ -116,27 +116,11 @@
         <section>
             <h3>Recent Stressors (Optional)</h3>
             <div class="checkboxes">
-                <label><input type="checkbox"> Academic pressure</label>
-                <label><input type="checkbox"> Career uncertainty</label>
-                <label><input type="checkbox"> Financial concerns</label>
-                <label><input type="checkbox"> Family issues</label>
-                <label><input type="checkbox"> Health concerns</label>
-            </div>
-        </section>
-
-        <!-- CV UPLOAD -->
-        <section>
-            <h3>Optional Resume / CV Upload</h3>
-
-            <div class="upload-box" onclick="triggerUpload()">
-                <div id="uploadContent">
-                    <span id="uploadText">Drag & drop your CV here<br>or click to browse (PDF only)</span>
-                </div>
-                <input type="file" id="cvInput" accept="application/pdf" hidden>
-            </div>
-
-            <div class="progress hidden" id="progressContainer">
-                <div id="progressBar"></div>
+                <label><input type="checkbox" value="Academic pressure"> Academic pressure</label>
+                <label><input type="checkbox" value="Career uncertainty"> Career uncertainty</label>
+                <label><input type="checkbox" value="Financial concerns"> Financial concerns</label>
+                <label><input type="checkbox" value="Family issues"> Family issues</label>
+                <label><input type="checkbox" value="Health concerns"> Health concerns</label>
             </div>
         </section>
 
@@ -144,9 +128,11 @@
             Continue to Interview
         </button>
 
+        <p id="statusMessage" style="text-align: center; margin-top: 15px; color: #94a3b8;"></p>
+
     </div>
 </div>
 
-<script src="demographic.js"></script>
+<script src="/demographic.js"></script>
 </body>
 </html>

@@ -1,0 +1,16 @@
+{
+  "age": "18",
+  "gender": "Male",
+  "country": "india",
+  "role": "Undergraduate Student",
+  "stage": "Early Stage",
+  "focus": "Academics",
+  "sleep_duration": "< 5 hours",
+  "workload": "Low",
+  "screen_time": "< 4 hours",
+  "living_situation": "Hostel",
+  "support_system": "Strong",
+  "stressors": [
+    "Academic pressure"
+  ]
+}

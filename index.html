@@ -562,6 +562,93 @@
             margin: 20px 0;
         }
 
+        /* Mode Selector */
+        .mode-selector {
+            width: 100%;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .mode-selector.hidden {
+            display: none;
+        }
+
+        .mode-label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            flex: 1;
+            max-width: 180px;
+            padding: 12px 16px;
+            border: 2px solid var(--glass-border);
+            background: var(--bg-card);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .mode-btn span {
+            font-size: 20px;
+        }
+
+        .mode-btn small {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .mode-btn.active {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+            color: var(--text-primary);
+        }
+
+        .mode-btn.active span {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .mode-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .mode-indicator.quick {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .mode-indicator.full {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
         .disclaimer {
             font-size: 12px;
             color: var(--text-secondary);
@@ -618,6 +705,21 @@
             </div>
 
             <div class="controls">
+                <!-- Mode Toggle -->
+                <div class="mode-selector" id="modeSelector">
+                    <span class="mode-label">Analysis Mode:</span>
+                    <div class="mode-toggle">
+                        <button class="mode-btn active" id="quickModeBtn" onclick="setMode('quick')">
+                            <span>⚡</span> Quick Test
+                            <small>Pipeline validation</small>
+                        </button>
+                        <button class="mode-btn" id="fullModeBtn" onclick="setMode('full')">
+                            <span>🔬</span> Full Analysis
+                            <small>ML inference</small>
+                        </button>
+                    </div>
+                </div>
+                
                 <button class="btn btn-primary" id="startBtn" onclick="startInterview()">
                     <span>🎯</span> Start Interview
                 </button>
@@ -664,6 +766,15 @@
         let totalQuestions = 8;
         let currentQuestion = 0;
         let liveTranscript = '';
+        let analysisMode = 'quick'; // 'quick' = demo mode, 'full' = real inference
+
+        // Mode selection functions
+        function setMode(mode) {
+            analysisMode = mode;
+            document.getElementById('quickModeBtn').classList.toggle('active', mode === 'quick');
+            document.getElementById('fullModeBtn').classList.toggle('active', mode === 'full');
+            console.log('Analysis mode set to:', mode);
+        }
 
         // Elements
         const chatContainer = document.getElementById('chatContainer');
@@ -729,6 +840,9 @@
 
         async function startInterview() {
             try {
+                // Hide mode selector after starting
+                document.getElementById('modeSelector').classList.add('hidden');
+                
                 const response = await fetch('/start');
                 const data = await response.json();
                 
@@ -737,12 +851,22 @@
                 interviewStarted = true;
                 
                 updateProgress();
+                
+                // Show mode indicator in status
+                const modeLabel = analysisMode === 'quick' ? '⚡ Quick Test' : '🔬 Full Analysis';
                 updateStatus(`Question ${currentQuestion} of ${totalQuestions}`);
                 
                 showTyping();
                 await new Promise(r => setTimeout(r, 800));
                 hideTyping();
                 
+                // Add mode info message
+                const modeInfo = analysisMode === 'quick' 
+                    ? '📋 Running in <strong>Quick Test Mode</strong> - Pipeline validation without ML inference.'
+                    : '🔬 Running in <strong>Full Analysis Mode</strong> - Complete ML inference enabled.';
+                addMessage(modeInfo, true);
+                
+                await new Promise(r => setTimeout(r, 500));
                 addMessage(data.question, true);
                 
                 startBtn.disabled = true;
@@ -842,12 +966,14 @@
             const userMessage = liveTranscript || '(Audio response recorded)';
             addMessage(userMessage, false);
 
-            // Send audio for analysis
+            // Send audio for analysis with mode parameter
             const formData = new FormData();
             formData.append('audio', audioBlob, 'response.webm');
 
             try {
-                await fetch('/analyze_speech', {
+                // Add force_demo parameter based on mode selection
+                const forceDemo = analysisMode === 'quick' ? 'true' : 'false';
+                await fetch(`/analyze_speech?force_demo=${forceDemo}`, {
                     method: 'POST',
                     body: formData
                 });
@@ -952,6 +1078,9 @@
                     </div>
                 </div>
             `;
+            
+            // Show mode selector again
+            document.getElementById('modeSelector').classList.remove('hidden');
             
             startBtn.disabled = false;
             startBtn.style.display = 'flex';

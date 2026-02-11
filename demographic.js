@@ -1,40 +1,63 @@
-const input = document.getElementById("cvInput");
-const uploadText = document.getElementById("uploadText");
-const progressBar = document.getElementById("progressBar");
-const progressContainer = document.getElementById("progressContainer");
-const uploadContent = document.getElementById("uploadContent");
+// Simple form submission script
 
-function triggerUpload() {
-    input.click();
-}
+async function continueInterview() {
+    const statusMsg = document.getElementById('statusMessage');
+    statusMsg.textContent = 'Submitting...';
+    statusMsg.style.color = '#94a3b8';
+    
+    try {
+        // Collect stressors from checkboxes
+        const stressors = [];
+        document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+            stressors.push(cb.value);
+        });
 
-input.addEventListener("change", () => {
-    const file = input.files[0];
-    if (!file) return;
+        // Collect form data using element IDs
+        const formData = {
+            age: document.getElementById('age')?.value || null,
+            gender: document.getElementById('gender')?.value || null,
+            country: document.getElementById('country')?.value || null,
+            role: document.getElementById('role')?.value || null,
+            stage: document.getElementById('stage')?.value || null,
+            focus: document.getElementById('focus')?.value || null,
+            sleep_duration: document.getElementById('sleep_duration')?.value || null,
+            workload: document.getElementById('workload')?.value || null,
+            screen_time: document.getElementById('screen_time')?.value || null,
+            living_situation: document.getElementById('living_situation')?.value || null,
+            support_system: document.getElementById('support_system')?.value || null,
+            stressors: stressors
+        };
 
-    progressContainer.classList.remove("hidden");
-    progressBar.style.width = "0%";
-    uploadText.textContent = "Uploading...";
+        console.log("Submitting form data:", formData);
 
-    let progress = 0;
-    const interval = setInterval(() => {
-        progress += 12;
-        progressBar.style.width = progress + "%";
+        // Submit demographic data to backend
+        const response = await fetch('/submit_demographics', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
 
-        if (progress >= 100) {
-            clearInterval(interval);
-            progressContainer.classList.add("hidden");
+        const result = await response.json();
+        console.log("Response:", response.status, result);
 
-            uploadContent.innerHTML = `
-                <div style="font-size:18px;">📄 ${file.name}</div>
-                <div style="font-size:13px;color:#94a3b8;margin-top:6px;">
-                    Upload complete
-                </div>
-            `;
+        if (response.ok) {
+            statusMsg.textContent = 'Success! Redirecting to interview...';
+            statusMsg.style.color = '#10b981';
+            
+            // Redirect to interview page
+            setTimeout(() => {
+                window.location.href = "/interview";
+            }, 500);
+        } else {
+            statusMsg.textContent = 'Error: ' + (result.detail || 'Submission failed');
+            statusMsg.style.color = '#ef4444';
+            console.error("Form submission failed:", result);
         }
-    }, 120);
-});
-
-function continueInterview() {
-    window.location.href = "index.html";
+    } catch (error) {
+        statusMsg.textContent = 'Error: ' + error.message;
+        statusMsg.style.color = '#ef4444';
+        console.error("Error:", error);
+    }
 }
