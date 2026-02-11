@@ -14,6 +14,7 @@ async function continueInterview() {
 
         // Collect form data using element IDs
         const formData = {
+            name: document.getElementById('name')?.value || null,
             age: document.getElementById('age')?.value || null,
             gender: document.getElementById('gender')?.value || null,
             country: document.getElementById('country')?.value || null,

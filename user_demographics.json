@@ -1,16 +1,17 @@
 {
-  "age": "18",
+  "age": "20",
   "gender": "Male",
   "country": "india",
   "role": "Undergraduate Student",
-  "stage": "Early Stage",
-  "focus": "Academics",
-  "sleep_duration": "< 5 hours",
-  "workload": "Low",
-  "screen_time": "< 4 hours",
+  "stage": "Mid Stage",
+  "focus": "Job / Internship Search",
+  "sleep_duration": "5-6 hours",
+  "workload": "High",
+  "screen_time": "4-6 hours",
   "living_situation": "Hostel",
-  "support_system": "Strong",
+  "support_system": "Moderate",
   "stressors": [
-    "Academic pressure"
+    "Academic pressure",
+    "Career uncertainty"
   ]
 }

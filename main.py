@@ -15,6 +15,16 @@ from typing import List, Optional
 import uvicorn
 
 from inference import predict_phq, load_model, is_demo_mode
+from llm_utils import (
+    generate_personalized_questions,
+    generate_next_question,
+    generate_recommendation,
+    is_llm_available,
+    HARDCODED_QUESTIONS,
+    HARDCODED_RECOMMENDATIONS,
+    _get_severity_level,
+    _get_hardcoded_recommendation
+)
 
 # File to store demographic data for future LLM use
 DEMOGRAPHIC_DATA_FILE = "user_demographics.json"
@@ -80,6 +90,18 @@ class FinalResultResponse(BaseModel):
     num_responses: int
     demo_mode: bool
     message: str
+    recommendation: Optional[dict] = None
+
+
+class RecommendationResponse(BaseModel):
+    """Response model for recommendation."""
+    severity: str
+    score: float
+    summary: str
+    recommendations: List[str]
+    resources: List[str]
+    encouragement: str
+    llm_generated: bool = False
 
 
 class DemographicData(BaseModel):
@@ -143,6 +165,15 @@ async def health_check():
     )
 
 
+@app.get("/llm_status")
+async def llm_status():
+    """Check if LLM is available and configured."""
+    return {
+        "llm_available": is_llm_available(),
+        "message": "LLM is configured and ready" if is_llm_available() else "LLM not available. Set GEMINI_API_KEY environment variable."
+    }
+
+
 @app.post("/submit_demographics")
 async def submit_demographics(data: DemographicData):
     """Store demographic information and return success."""
@@ -188,92 +219,181 @@ async def get_js():
     raise HTTPException(status_code=404, detail="JS file not found")
 
 
-@app.get("/start", response_model=ChatResponse)
-async def start_interview():
-    """Start a new interview session."""
+@app.get("/start")
+async def start_interview(llm_mode: bool = False):
+    """
+    Start a new interview session.
+    
+    Args:
+        llm_mode: If True, generate personalized questions using LLM dynamically
+    """
     session_id = "default"  # In production, generate unique session IDs
+    
+    # Load demographics for LLM personalization
+    demographics = {}
+    try:
+        data_file = os.path.join(os.path.dirname(__file__), DEMOGRAPHIC_DATA_FILE)
+        if os.path.exists(data_file):
+            with open(data_file, "r", encoding="utf-8") as f:
+                demographics = json.load(f)
+    except Exception as e:
+        print(f"[WARNING] Could not load demographics: {e}")
+    
+    total_questions = 5
+    
+    # Generate first question based on mode
+    if llm_mode and is_llm_available():
+        print("[INFO] Starting dynamic LLM interview mode...")
+        first_question = generate_next_question(demographics, [], 1, total_questions)
+        question_mode = "llm"
+    else:
+        print("[INFO] Using hardcoded questions")
+        first_question = HARDCODED_QUESTIONS[0]
+        question_mode = "static"
+    
     sessions[session_id] = {
         "current_question": 0,
-        "phq_scores": []
+        "phq_scores": [],
+        "questions": [first_question],  # Will be populated dynamically
+        "demographics": demographics,
+        "question_mode": question_mode,
+        "conversation_history": [],  # Stores Q&A pairs
+        "total_questions": total_questions
     }
     
-    return ChatResponse(
-        question=QUESTIONS[0],
-        question_number=1,
-        total_questions=len(QUESTIONS),
-        completed=False
-    )
+    return {
+        "question": first_question,
+        "question_number": 1,
+        "total_questions": total_questions,
+        "completed": False,
+        "question_mode": question_mode
+    }
 
 
-@app.post("/next_question", response_model=ChatResponse)
-async def next_question():
-    """Get the next question in the interview."""
+class NextQuestionRequest(BaseModel):
+    """Request body for next question endpoint."""
+    transcript: Optional[str] = None  # User's answer transcript
+
+
+@app.post("/next_question")
+async def next_question(request: NextQuestionRequest = None):
+    """
+    Get the next question in the interview.
+    Stores the user's transcript and generates personalized follow-up.
+    """
     session_id = "default"
     
     if session_id not in sessions:
-        sessions[session_id] = {"current_question": 0, "phq_scores": []}
+        sessions[session_id] = {
+            "current_question": 0, 
+            "phq_scores": [],
+            "questions": HARDCODED_QUESTIONS,
+            "conversation_history": [],
+            "total_questions": 5
+        }
     
-    sessions[session_id]["current_question"] += 1
-    current = sessions[session_id]["current_question"]
+    session = sessions[session_id]
+    current_idx = session["current_question"]
+    total_questions = session.get("total_questions", 5)
+    conversation_history = session.get("conversation_history", [])
+    question_mode = session.get("question_mode", "static")
+    demographics = session.get("demographics", {})
     
-    if current >= len(QUESTIONS):
-        return ChatResponse(
-            question="Thank you for completing the interview.",
-            question_number=current + 1,
-            total_questions=len(QUESTIONS),
-            completed=True
+    # Store the user's answer for the current question
+    user_transcript = request.transcript if request else None
+    if current_idx < len(session["questions"]) and user_transcript:
+        conversation_history.append({
+            "question": session["questions"][current_idx],
+            "answer": user_transcript
+        })
+        session["conversation_history"] = conversation_history
+        print(f"[INFO] Stored answer for Q{current_idx + 1}: {user_transcript[:50]}...")
+    
+    # Move to next question
+    session["current_question"] += 1
+    next_idx = session["current_question"]
+    
+    # Check if interview is complete
+    if next_idx >= total_questions:
+        return {
+            "question": "Thank you for completing the interview.",
+            "question_number": next_idx + 1,
+            "total_questions": total_questions,
+            "completed": True
+        }
+    
+    # Generate next question
+    if question_mode == "llm" and is_llm_available():
+        print(f"[INFO] Generating dynamic question {next_idx + 1} based on conversation...")
+        next_q = generate_next_question(
+            demographics, 
+            conversation_history, 
+            next_idx + 1,  # 1-indexed question number
+            total_questions
         )
+    else:
+        # Use hardcoded questions
+        idx = min(next_idx, len(HARDCODED_QUESTIONS) - 1)
+        next_q = HARDCODED_QUESTIONS[idx]
     
-    return ChatResponse(
-        question=QUESTIONS[current],
-        question_number=current + 1,
-        total_questions=len(QUESTIONS),
-        completed=False
-    )
+    # Add to questions list
+    session["questions"].append(next_q)
+    
+    return {
+        "question": next_q,
+        "question_number": next_idx + 1,
+        "total_questions": total_questions,
+        "completed": False
+    }
 
 
-@app.get("/results", response_model=FinalResultResponse)
-async def get_results():
-    """Get final interview results with average PHQ score."""
+@app.get("/results")
+async def get_results(llm_mode: bool = False):
+    """
+    Get final interview results with average PHQ score and recommendation.
+    
+    Args:
+        llm_mode: If True, generate personalized recommendation using LLM
+    """
     session_id = "default"
     
     if session_id not in sessions:
         raise HTTPException(status_code=404, detail="No active session found")
     
     scores = sessions[session_id]["phq_scores"]
+    demographics = sessions[session_id].get("demographics", {})
     
     if len(scores) == 0:
-        return FinalResultResponse(
-            completed=True,
-            average_phq_score=0.0,
-            num_responses=0,
-            demo_mode=is_demo_mode(),
-            message="No audio responses were analyzed"
-        )
+        return {
+            "completed": True,
+            "average_phq_score": 0.0,
+            "num_responses": 0,
+            "demo_mode": is_demo_mode(),
+            "message": "No audio responses were analyzed",
+            "recommendation": None
+        }
     
     avg_score = sum(scores) / len(scores)
+    severity = _get_severity_level(avg_score)
     
-    # Interpretation
-    if avg_score < 5:
-        severity = "minimal"
-    elif avg_score < 10:
-        severity = "mild"
-    elif avg_score < 15:
-        severity = "moderate"
-    elif avg_score < 20:
-        severity = "moderately severe"
+    # Generate recommendation based on mode
+    if llm_mode and is_llm_available():
+        print("[INFO] Generating LLM recommendation...")
+        recommendation = generate_recommendation(avg_score, demographics)
     else:
-        severity = "severe"
+        print("[INFO] Using hardcoded recommendation")
+        recommendation = _get_hardcoded_recommendation(severity, avg_score)
     
     demo_msg = " (Demo Mode - Mock Scores)" if is_demo_mode() else ""
     
-    return FinalResultResponse(
-        completed=True,
-        average_phq_score=round(avg_score, 2),
-        num_responses=len(scores),
-        demo_mode=is_demo_mode(),
-        message=f"Interview completed. Average PHQ-8 score: {avg_score:.1f} ({severity} depression){demo_msg}"
-    )
+    return {
+        "completed": True,
+        "average_phq_score": round(avg_score, 2),
+        "num_responses": len(scores),
+        "demo_mode": is_demo_mode(),
+        "message": f"Interview completed. Average PHQ-8 score: {avg_score:.1f} ({severity.replace('_', ' ')} depression){demo_msg}",
+        "recommendation": recommendation
+    }
 
 
 @app.post("/analyze_speech", response_model=AnalysisResponse)

@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Participant Information | MindSpace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/demographic.css">
 </head>
 <body>
@@ -19,12 +21,13 @@
     <div class="card">
 
         <h2 class="form-title">Participant Information</h2>
-        <p class="subtitle">Before we begin, please provide some basic information.</p>
+        <p class="subtitle">Help us personalize your experience. All fields are optional.</p>
 
         <!-- BASIC INFO -->
         <section>
             <h3>Basic Information</h3>
             <div class="grid">
+                <input type="text" id="name" placeholder="Full Name">
                 <input type="number" id="age" placeholder="Age">
                 <select id="gender">
                     <option value="" selected disabled>Gender</option>
@@ -124,8 +127,24 @@
             </div>
         </section>
 
+        <!-- CV UPLOAD -->
+        <section>
+            <h3>Resume / CV (Optional)</h3>
+            <div class="upload-container">
+                <input type="file" id="cvUpload" accept=".pdf,.doc,.docx" style="display: none;">
+                <div class="file-upload-box" onclick="document.getElementById('cvUpload').click()">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">
+                        <span class="upload-main">Click to upload your CV</span>
+                        <span class="upload-sub">PDF, DOC, or DOCX format</span>
+                    </div>
+                </div>
+                <div class="file-name" id="fileName" style="display: none;"></div>
+            </div>
+        </section>
+
         <button class="primary-btn" onclick="continueInterview()">
-            Continue to Interview
+            Continue to Interview  →
         </button>
 
         <p id="statusMessage" style="text-align: center; margin-top: 15px; color: #94a3b8;"></p>
@@ -134,5 +153,19 @@
 </div>
 
 <script src="/demographic.js"></script>
+<script>
+// Simple CV upload handler for UI feedback only
+document.getElementById('cvUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const fileName = document.getElementById('fileName');
+    
+    if (file) {
+        fileName.textContent = `✓ ${file.name}`;
+        fileName.style.display = 'block';
+    } else {
+        fileName.style.display = 'none';
+    }
+});
+</script>
 </body>
 </html>

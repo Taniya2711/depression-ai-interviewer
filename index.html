@@ -9,17 +9,26 @@
         :root {
             --primary: #6366f1;
             --primary-dark: #4f46e5;
+            --primary-glow: rgba(99, 102, 241, 0.35);
             --secondary: #8b5cf6;
+            --accent: #a78bfa;
             --success: #10b981;
+            --success-soft: rgba(16, 185, 129, 0.15);
             --danger: #ef4444;
             --warning: #f59e0b;
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
+            --bg-dark: #020617;
+            --bg-card: #0f172a;
+            --bg-surface: #1e293b;
             --bg-light: #334155;
-            --text-primary: #f8fafc;
+            --text-primary: #f1f5f9;
             --text-secondary: #94a3b8;
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-dim: #64748b;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 22px;
+            --radius-xl: 28px;
         }
 
         * {
@@ -34,6 +43,7 @@
             min-height: 100vh;
             color: var(--text-primary);
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* Animated background */
@@ -54,10 +64,10 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-                        radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
-            animation: bgFloat 20s ease-in-out infinite;
+            background: radial-gradient(ellipse 80% 50% at 20% 90%, rgba(99, 102, 241, 0.10) 0%, transparent 55%),
+                        radial-gradient(ellipse 60% 50% at 85% 15%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+                        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 45%);
+            animation: bgFloat 30s ease-in-out infinite;
         }
 
         @keyframes bgFloat {
@@ -106,33 +116,37 @@
         }
 
         .header h1 {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
         }
 
         .header p {
-            color: var(--text-secondary);
-            font-size: 16px;
+            color: var(--text-dim);
+            font-size: 14px;
             font-weight: 300;
+            letter-spacing: 0.2px;
         }
 
         /* Chat Container */
         .chat-wrapper {
             flex: 1;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
-            border-radius: 24px;
+            border-radius: var(--radius-xl);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             animation: fadeInUp 0.8s ease 0.2s both;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow:
+                0 4px 6px rgba(0,0,0,0.08),
+                0 20px 50px -10px rgba(0, 0, 0, 0.4);
         }
 
         @keyframes fadeInUp {
@@ -147,11 +161,12 @@
         }
 
         .chat-header {
-            padding: 20px 25px;
+            padding: 16px 24px;
             border-bottom: 1px solid var(--glass-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            background: rgba(15, 23, 42, 0.3);
         }
 
         .chat-status {
@@ -259,20 +274,23 @@
         }
 
         .message-bubble {
-            padding: 16px 20px;
-            border-radius: 20px;
-            line-height: 1.6;
-            font-size: 15px;
+            padding: 14px 18px;
+            border-radius: 18px;
+            line-height: 1.65;
+            font-size: 14px;
         }
 
         .message.ai .message-bubble {
-            background: var(--bg-card);
-            border-bottom-left-radius: 6px;
+            background: var(--bg-surface);
+            border: 1px solid var(--glass-border);
+            border-bottom-left-radius: 4px;
+            color: var(--text-primary);
         }
 
         .message.user .message-bubble {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-bottom-right-radius: 6px;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 15px -4px var(--primary-glow);
         }
 
         /* Typing indicator */
@@ -350,37 +368,36 @@
 
         /* Controls */
         .controls {
-            padding: 25px;
+            padding: 22px 24px;
             border-top: 1px solid var(--glass-border);
             display: flex;
-            gap: 12px;
+            gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
+            background: rgba(15, 23, 42, 0.3);
         }
 
         .btn {
-            padding: 14px 28px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 14px;
-            font-size: 15px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             font-family: inherit;
             position: relative;
             overflow: hidden;
+            letter-spacing: 0.2px;
         }
 
         .btn::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: linear-gradient(rgba(255,255,255,0.1), transparent);
             opacity: 0;
             transition: opacity 0.3s;
@@ -391,16 +408,16 @@
         }
 
         .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px -10px currentColor;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px -8px rgba(0,0,0,0.4);
         }
 
         .btn:active {
-            transform: translateY(-1px);
+            transform: translateY(0);
         }
 
         .btn:disabled {
-            opacity: 0.4;
+            opacity: 0.35;
             cursor: not-allowed;
             transform: none !important;
             box-shadow: none !important;
@@ -409,16 +426,27 @@
         .btn-primary {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
+            box-shadow: 0 2px 10px -2px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 8px 25px -6px var(--primary-glow);
         }
 
         .btn-success {
             background: linear-gradient(135deg, var(--success), #059669);
             color: white;
+            box-shadow: 0 2px 10px -2px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 8px 25px -6px rgba(16, 185, 129, 0.35);
         }
 
         .btn-danger {
             background: linear-gradient(135deg, var(--danger), #dc2626);
             color: white;
+            box-shadow: 0 2px 10px -2px rgba(239, 68, 68, 0.3);
         }
 
         .btn-ghost {
@@ -462,14 +490,15 @@
 
         .results-card {
             background: var(--bg-card);
-            border-radius: 30px;
-            padding: 50px;
-            max-width: 500px;
-            width: 90%;
+            border-radius: var(--radius-xl);
+            padding: 44px 40px;
+            max-width: 520px;
+            width: 92%;
             text-align: center;
-            transform: scale(0.9) translateY(20px);
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(0.92) translateY(20px);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             border: 1px solid var(--glass-border);
+            box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
         }
 
         .results-overlay.active .results-card {
@@ -489,10 +518,11 @@
         }
 
         .results-title {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
             color: var(--text-primary);
+            letter-spacing: -0.3px;
         }
 
         .score-display {
@@ -540,10 +570,10 @@
             margin: 20px 0;
         }
 
-        .severity-minimal { background: rgba(16, 185, 129, 0.2); color: #10b981; }
-        .severity-mild { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-        .severity-moderate { background: rgba(249, 115, 22, 0.2); color: #f97316; }
-        .severity-severe { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .severity-minimal { background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .severity-mild { background: rgba(245, 158, 11, 0.12); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .severity-moderate { background: rgba(249, 115, 22, 0.12); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.2); }
+        .severity-severe { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
 
         .results-info {
             color: var(--text-secondary);
@@ -553,21 +583,21 @@
         }
 
         .demo-warning {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            padding: 12px 20px;
-            border-radius: 12px;
-            color: var(--warning);
-            font-size: 13px;
-            margin: 20px 0;
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            color: #fbbf24;
+            font-size: 12px;
+            margin: 18px 0;
         }
 
         /* Mode Selector */
         .mode-selector {
             width: 100%;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
         }
 
         .mode-selector.hidden {
@@ -576,56 +606,68 @@
 
         .mode-label {
             display: block;
-            font-size: 13px;
-            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-dim);
             margin-bottom: 10px;
             text-align: center;
         }
 
         .mode-toggle {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
         }
 
         .mode-btn {
             flex: 1;
-            max-width: 180px;
-            padding: 12px 16px;
-            border: 2px solid var(--glass-border);
-            background: var(--bg-card);
-            border-radius: 12px;
-            color: var(--text-secondary);
+            max-width: 170px;
+            padding: 10px 14px;
+            border: 1.5px solid var(--glass-border);
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: var(--radius-sm);
+            color: var(--text-dim);
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
+            font-family: inherit;
         }
 
         .mode-btn span {
-            font-size: 20px;
+            font-size: 18px;
         }
 
         .mode-btn small {
-            font-size: 11px;
-            opacity: 0.7;
+            font-size: 10px;
+            opacity: 0.65;
+            font-weight: 500;
         }
 
         .mode-btn:hover {
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(99, 102, 241, 0.06);
+            color: var(--text-secondary);
         }
 
         .mode-btn.active {
-            border-color: var(--primary);
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+            border-color: rgba(99, 102, 241, 0.5);
+            background: rgba(99, 102, 241, 0.1);
             color: var(--text-primary);
+            box-shadow: 0 0 15px -4px rgba(99, 102, 241, 0.2);
         }
 
         .mode-btn.active span {
-            animation: pulse 2s ease-in-out infinite;
+            animation: gentlePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes gentlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
         }
 
         .mode-indicator {
@@ -649,20 +691,166 @@
             color: #10b981;
         }
 
-        .disclaimer {
-            font-size: 12px;
+        .llm-status {
+            display: block;
+            text-align: center;
+            margin-top: 8px;
+            font-size: 11px;
             color: var(--text-secondary);
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid var(--glass-border);
+        }
+
+        .llm-status.available {
+            color: var(--success);
+        }
+
+        .llm-status.unavailable {
+            color: var(--warning);
+        }
+
+        /* Results Card Large */
+        .results-card-large {
+            max-width: 620px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .results-card-large::-webkit-scrollbar {
+            width: 5px;
+        }
+        .results-card-large::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .results-card-large::-webkit-scrollbar-thumb {
+            background: var(--bg-light);
+            border-radius: 3px;
+        }
+
+        /* Recommendation Section */
+        .recommendation-section {
+            margin-top: 28px;
+            padding: 24px 22px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--glass-border);
+            text-align: left;
+        }
+
+        .recommendation-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 18px;
+            color: var(--text-primary);
+            text-align: center;
+            letter-spacing: -0.2px;
+        }
+
+        .recommendation-summary {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 22px;
+            padding: 14px 16px;
+            background: rgba(99, 102, 241, 0.06);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--primary);
+        }
+
+        .recommendation-list, .resources-list {
+            margin-bottom: 18px;
+        }
+
+        .recommendation-list h4, .resources-list h4 {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 10px;
+            color: var(--text-dim);
+        }
+
+        .recommendation-list ul, .resources-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .recommendation-list li, .resources-list li {
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 10px 14px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            line-height: 1.55;
+            border: 1px solid rgba(255,255,255,0.04);
+            transition: background 0.2s;
+        }
+
+        .recommendation-list li:hover, .resources-list li:hover {
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        .recommendation-list li::before {
+            content: "✓  ";
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .resources-list li::before {
+            content: "→  ";
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .encouragement {
+            font-size: 13px;
+            font-style: italic;
+            color: #6ee7b7;
+            text-align: center;
+            padding: 16px;
+            background: rgba(16, 185, 129, 0.06);
+            border: 1px solid rgba(16, 185, 129, 0.12);
+            border-radius: var(--radius-sm);
+            margin-top: 16px;
+            line-height: 1.6;
+        }
+
+        .llm-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            color: var(--accent);
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 500;
+            margin-top: 16px;
+            letter-spacing: 0.3px;
+        }
+
+        .disclaimer {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            line-height: 1.5;
         }
 
         /* Responsive */
         @media (max-width: 600px) {
-            .header h1 { font-size: 24px; }
-            .controls { padding: 15px; }
-            .btn { padding: 12px 20px; font-size: 14px; }
-            .results-card { padding: 30px; }
+            .header { padding: 24px 16px; }
+            .header h1 { font-size: 22px; }
+            .container { padding: 12px; }
+            .controls { padding: 16px 12px; gap: 8px; }
+            .btn { padding: 11px 18px; font-size: 13px; }
+            .results-card { padding: 28px 22px; }
+            .recommendation-section { padding: 18px 16px; }
+            .mode-btn { max-width: 150px; padding: 8px 10px; }
         }
     </style>
 </head>
@@ -705,19 +893,35 @@
             </div>
 
             <div class="controls">
-                <!-- Mode Toggle -->
+                <!-- Analysis Mode Toggle -->
                 <div class="mode-selector" id="modeSelector">
-                    <span class="mode-label">Analysis Mode:</span>
+                    <span class="mode-label">🔬 Analysis Mode (Audio Processing):</span>
                     <div class="mode-toggle">
-                        <button class="mode-btn active" id="quickModeBtn" onclick="setMode('quick')">
+                        <button class="mode-btn active" id="quickModeBtn" onclick="setAnalysisMode('quick')">
                             <span>⚡</span> Quick Test
                             <small>Pipeline validation</small>
                         </button>
-                        <button class="mode-btn" id="fullModeBtn" onclick="setMode('full')">
-                            <span>🔬</span> Full Analysis
+                        <button class="mode-btn" id="fullModeBtn" onclick="setAnalysisMode('full')">
+                            <span>🧬</span> Full Analysis
                             <small>ML inference</small>
                         </button>
                     </div>
+                </div>
+
+                <!-- Question Mode Toggle -->
+                <div class="mode-selector" id="questionModeSelector">
+                    <span class="mode-label">💬 Question Mode (Interview Style):</span>
+                    <div class="mode-toggle">
+                        <button class="mode-btn active" id="staticModeBtn" onclick="setQuestionMode('static')">
+                            <span>📋</span> Standard
+                            <small>PHQ-8 questions</small>
+                        </button>
+                        <button class="mode-btn" id="llmModeBtn" onclick="setQuestionMode('llm')">
+                            <span>🤖</span> Adaptive AI
+                            <small>Personalized questions</small>
+                        </button>
+                    </div>
+                    <small id="llmStatus" class="llm-status"></small>
                 </div>
                 
                 <button class="btn btn-primary" id="startBtn" onclick="startInterview()">
@@ -735,9 +939,9 @@
 
     <!-- Results Overlay -->
     <div class="results-overlay" id="resultsOverlay">
-        <div class="results-card">
+        <div class="results-card results-card-large">
             <div class="results-icon">📊</div>
-            <h2 class="results-title">Interview Complete</h2>
+            <h2 class="results-title">Your Results</h2>
             <div class="score-display">
                 <div class="score-circle" id="scoreCircle">
                     <span class="score-value" id="scoreValue">0</span>
@@ -745,14 +949,37 @@
             </div>
             <div id="severityBadge" class="severity-badge"></div>
             <p class="results-info" id="resultsInfo"></p>
+            
+            <!-- Recommendation Section -->
+            <div class="recommendation-section" id="recommendationSection">
+                <h3 class="recommendation-title">Personalized Recommendations</h3>
+                <p class="recommendation-summary" id="recommendationSummary"></p>
+                
+                <div class="recommendation-list">
+                    <h4>Suggested Actions</h4>
+                    <ul id="recommendationList"></ul>
+                </div>
+                
+                <div class="resources-list">
+                    <h4>Helpful Resources</h4>
+                    <ul id="resourcesList"></ul>
+                </div>
+                
+                <p class="encouragement" id="encouragementText"></p>
+                
+                <div class="llm-badge" id="llmBadge" style="display: none;">
+                    <span>✦</span> AI-Personalized
+                </div>
+            </div>
+            
             <div class="demo-warning" id="demoWarning" style="display: none;">
                 ⚠️ Demo Mode: Scores are simulated for demonstration
             </div>
-            <button class="btn btn-primary" onclick="resetInterview()" style="margin-top: 20px;">
-                <span>🔄</span> Start New Session
+            <button class="btn btn-primary" onclick="resetInterview()" style="margin-top: 22px; width: 100%; justify-content: center;">
+                <span>↻</span> Start New Session
             </button>
             <p class="disclaimer">
-                <strong>Disclaimer:</strong> This is a screening tool, not a diagnosis. Please consult a healthcare professional for proper evaluation.
+                <strong>Important:</strong> This is a screening tool only — it does not replace professional diagnosis. Please consult a qualified healthcare provider for proper evaluation and treatment.
             </p>
         </div>
     </div>
@@ -767,13 +994,48 @@
         let currentQuestion = 0;
         let liveTranscript = '';
         let analysisMode = 'quick'; // 'quick' = demo mode, 'full' = real inference
+        let questionMode = 'static'; // 'static' = hardcoded, 'llm' = personalized AI
+        let llmAvailable = false;
 
-        // Mode selection functions
-        function setMode(mode) {
+        // Check LLM availability on page load
+        async function checkLLMStatus() {
+            try {
+                const response = await fetch('/llm_status');
+                const data = await response.json();
+                llmAvailable = data.llm_available;
+                
+                const statusEl = document.getElementById('llmStatus');
+                if (llmAvailable) {
+                    statusEl.textContent = '✓ AI available';
+                    statusEl.className = 'llm-status available';
+                } else {
+                    statusEl.textContent = '⚠ AI unavailable (set GEMINI_API_KEY)';
+                    statusEl.className = 'llm-status unavailable';
+                }
+            } catch (e) {
+                console.error('Failed to check LLM status:', e);
+            }
+        }
+
+        // Analysis Mode selection (audio processing)
+        function setAnalysisMode(mode) {
             analysisMode = mode;
             document.getElementById('quickModeBtn').classList.toggle('active', mode === 'quick');
             document.getElementById('fullModeBtn').classList.toggle('active', mode === 'full');
             console.log('Analysis mode set to:', mode);
+        }
+
+        // Question Mode selection (interview style)
+        function setQuestionMode(mode) {
+            questionMode = mode;
+            document.getElementById('staticModeBtn').classList.toggle('active', mode === 'static');
+            document.getElementById('llmModeBtn').classList.toggle('active', mode === 'llm');
+            console.log('Question mode set to:', mode);
+            
+            if (mode === 'llm' && !llmAvailable) {
+                alert('AI mode is not available. Please set GEMINI_API_KEY environment variable and restart the server.');
+                setQuestionMode('static');
+            }
         }
 
         // Elements
@@ -840,10 +1102,13 @@
 
         async function startInterview() {
             try {
-                // Hide mode selector after starting
+                // Hide mode selectors after starting
                 document.getElementById('modeSelector').classList.add('hidden');
+                document.getElementById('questionModeSelector').classList.add('hidden');
                 
-                const response = await fetch('/start');
+                // Pass llm_mode based on question mode selection
+                const useLLM = questionMode === 'llm';
+                const response = await fetch(`/start?llm_mode=${useLLM}`);
                 const data = await response.json();
                 
                 totalQuestions = data.total_questions || 8;
@@ -851,20 +1116,22 @@
                 interviewStarted = true;
                 
                 updateProgress();
-                
-                // Show mode indicator in status
-                const modeLabel = analysisMode === 'quick' ? '⚡ Quick Test' : '🔬 Full Analysis';
                 updateStatus(`Question ${currentQuestion} of ${totalQuestions}`);
                 
                 showTyping();
                 await new Promise(r => setTimeout(r, 800));
                 hideTyping();
                 
-                // Add mode info message
-                const modeInfo = analysisMode === 'quick' 
-                    ? '📋 Running in <strong>Quick Test Mode</strong> - Pipeline validation without ML inference.'
-                    : '🔬 Running in <strong>Full Analysis Mode</strong> - Complete ML inference enabled.';
-                addMessage(modeInfo, true);
+                // Add mode info messages
+                const analysisInfo = analysisMode === 'quick' 
+                    ? '⚡ <strong>Quick Test Mode</strong> - Pipeline validation without ML inference.'
+                    : '🧬 <strong>Full Analysis Mode</strong> - Complete ML inference enabled.';
+                
+                const questionInfo = data.question_mode === 'llm'
+                    ? '🤖 <strong>Adaptive AI Mode</strong> - Personalized questions generated.'
+                    : '📋 <strong>Standard Mode</strong> - PHQ-8 clinical questions.';
+                
+                addMessage(`${analysisInfo}<br>${questionInfo}`, true);
                 
                 await new Promise(r => setTimeout(r, 500));
                 addMessage(data.question, true);
@@ -962,8 +1229,9 @@
         }
 
         async function sendResponse(audioBlob) {
-            // Show user's transcribed message
+            // Show user's transcribed message and store for LLM context
             const userMessage = liveTranscript || '(Audio response recorded)';
+            const lastTranscript = liveTranscript;  // Store before clearing
             addMessage(userMessage, false);
 
             // Send audio for analysis with mode parameter
@@ -978,8 +1246,8 @@
                     body: formData
                 });
 
-                // Get next question
-                await getNextQuestion();
+                // Get next question with transcript for personalization
+                await getNextQuestion(lastTranscript);
             } catch (error) {
                 console.error('Error:', error);
                 addMessage('Sorry, there was an error processing your response. Please try again.', true);
@@ -988,9 +1256,15 @@
             }
         }
 
-        async function getNextQuestion() {
+        async function getNextQuestion(transcript = '') {
             try {
-                const response = await fetch('/next_question', { method: 'POST' });
+                const response = await fetch('/next_question', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ transcript: transcript })
+                });
                 const data = await response.json();
 
                 showTyping();
@@ -1022,7 +1296,9 @@
 
         async function showResults() {
             try {
-                const response = await fetch('/results');
+                // Pass llm_mode for recommendation generation
+                const useLLM = questionMode === 'llm';
+                const response = await fetch(`/results?llm_mode=${useLLM}`);
                 const data = await response.json();
 
                 const score = data.average_phq_score;
@@ -1059,6 +1335,47 @@
                     document.getElementById('demoWarning').style.display = 'block';
                 }
 
+                // Display recommendations
+                if (data.recommendation) {
+                    const rec = data.recommendation;
+                    
+                    document.getElementById('recommendationSummary').textContent = rec.summary || '';
+                    
+                    // Populate recommendations list
+                    const recList = document.getElementById('recommendationList');
+                    recList.innerHTML = '';
+                    if (rec.recommendations && rec.recommendations.length > 0) {
+                        rec.recommendations.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = item;
+                            recList.appendChild(li);
+                        });
+                    }
+                    
+                    // Populate resources list
+                    const resList = document.getElementById('resourcesList');
+                    resList.innerHTML = '';
+                    if (rec.resources && rec.resources.length > 0) {
+                        rec.resources.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = item;
+                            resList.appendChild(li);
+                        });
+                    }
+                    
+                    // Set encouragement
+                    document.getElementById('encouragementText').textContent = rec.encouragement || '';
+                    
+                    // Show LLM badge if AI-generated
+                    if (rec.llm_generated) {
+                        document.getElementById('llmBadge').style.display = 'inline-flex';
+                    } else {
+                        document.getElementById('llmBadge').style.display = 'none';
+                    }
+                    
+                    document.getElementById('recommendationSection').style.display = 'block';
+                }
+
                 // Show overlay with animation
                 resultsOverlay.classList.add('active');
 
@@ -1079,8 +1396,9 @@
                 </div>
             `;
             
-            // Show mode selector again
+            // Show mode selectors again
             document.getElementById('modeSelector').classList.remove('hidden');
+            document.getElementById('questionModeSelector').classList.remove('hidden');
             
             startBtn.disabled = false;
             startBtn.style.display = 'flex';
@@ -1094,12 +1412,15 @@
             updateStatus('Ready to begin');
         }
 
-        // Check browser support
+        // Check browser support and LLM status on load
         window.onload = () => {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 addMessage('⚠️ Your browser does not support audio recording. Please use Chrome, Firefox, or Edge.', true);
                 startBtn.disabled = true;
             }
+            
+            // Check LLM availability
+            checkLLMStatus();
         };
     </script>
 </body>
