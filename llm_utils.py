@@ -256,7 +256,7 @@ def generate_next_question(demographics: Dict, conversation_history: list, quest
         return HARDCODED_QUESTIONS[idx]
     
     demo_context = _format_demographics(demographics)
-    
+    cv_summary = demographics.get("cv_text", "")
     # Format conversation history
     conversation_text = ""
     if conversation_history:
@@ -279,6 +279,10 @@ def generate_next_question(demographics: Dict, conversation_history: list, quest
 
 User Profile:
 {demo_context}
+
+User Resume / CV Details:
+{cv_summary}
+
 {conversation_text}
 
 This is question {question_number} of {total_questions}. Focus on: {current_focus}
@@ -291,7 +295,7 @@ CRITICAL REQUIREMENTS:
    - If a name IS provided in the profile: use their EXACT first name in ONLY 2 out of every 5 questions (questions 1 and 3, or 2 and 4). The rest should NOT use the name — this feels more natural.
    - If NO name is provided: NEVER guess or invent a name. Just use "you" or be conversational.
    - Current question is #{question_number} — decide accordingly whether to include the name or not.
-3. Reference SPECIFIC details from their profile or previous answers (role, stressors, living situation, etc.)
+3. Reference SPECIFIC details from their profile, resume, or previous answers (role, projects, internships, skills, stressors, living situation, etc.)
 4. DO NOT ask generic questions - make it feel like you know them personally
 5. Build on what they've shared before (if any conversation history exists)
 6. Be warm and conversational, like a caring friend checking in
@@ -470,12 +474,44 @@ def _format_demographics(demographics: Dict) -> str:
         parts.append(f"- Support System: {demographics['support_system']}")
     if demographics.get("stressors"):
         stressors = demographics['stressors']
-        if isinstance(stressors, list) and stressors:
-            parts.append(f"- Current Stressors: {', '.join(stressors)}")
-    
+    if isinstance(stressors, list) and stressors:
+        parts.append(f"- Current Stressors: {', '.join(stressors)}")
+
+# ADD THIS BLOCK
+    if demographics.get("cv_text"):
+        parts.append(f"- Resume Information: {demographics['cv_text'][:1000]}")
+
     return "\n".join(parts) if parts else "No demographic information provided."
 
 
 def is_llm_available() -> bool:
     """Check if LLM is available and configured."""
     return GENAI_AVAILABLE and bool(GEMINI_API_KEY)
+
+def summarize_cv(cv_text: str) -> str:
+    """
+    Summarize CV into structured context for LLM prompts.
+    """
+    model = get_llm_model()
+    
+    if not model:
+        return cv_text[:1000]
+
+    prompt = f"""
+Summarize the following resume into structured information.
+
+Return JSON with:
+education
+skills
+projects
+career_focus
+
+Resume:
+{cv_text[:4000]}
+"""
+
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except:
+        return cv_text[:1000]

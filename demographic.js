@@ -36,13 +36,38 @@ async function continueInterview() {
         console.log("Submitting form data:", formData);
 
         // Submit demographic data to backend
-        const response = await fetch('/submit_demographics', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
+     console.log("Submitting form data:", formData);
+
+/* ===== Upload CV if user selected one ===== */
+const fileInput = document.getElementById('cvUpload');
+const file = fileInput ? fileInput.files[0] : null;
+
+if (file) {
+    console.log("Uploading CV:", file.name);
+
+    const cvFormData = new FormData();
+    cvFormData.append("file", file);
+
+    const cvResponse = await fetch('/upload_cv', {
+        method: 'POST',
+        body: cvFormData
+    });
+
+    if (!cvResponse.ok) {
+        throw new Error("CV upload failed");
+    }
+
+    console.log("CV uploaded successfully");
+}
+
+/* ===== Submit demographic data ===== */
+const response = await fetch('/submit_demographics', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(formData)
+});
 
         const result = await response.json();
         console.log("Response:", response.status, result);

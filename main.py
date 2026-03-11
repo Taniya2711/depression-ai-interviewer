@@ -4,6 +4,10 @@ Unified chatbot + audio analysis system.
 """
 
 import os
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=".env")
+import pymupdf 
+
 import json
 import tempfile
 from fastapi import FastAPI, File, UploadFile, HTTPException
@@ -50,7 +54,8 @@ QUESTIONS = [
 
 # Session state storage (in production, use Redis or database)
 sessions = {}
-
+# Store uploaded CV text
+CV_TEXT = ""
 # Enable CORS for frontend access
 app.add_middleware(
     CORSMiddleware,
@@ -155,15 +160,15 @@ async def interview():
     return "<h1>Depression AI Interviewer</h1><p>index.html not found</p>"
 
 
-@app.get("/health", response_model=HealthResponse)
-async def health_check():
-    """Check if the service is healthy and model is loaded."""
-    from inference import _model
-    return HealthResponse(
-        status="healthy",
-        model_loaded=_model is not None,
-        demo_mode=is_demo_mode()
-    )
+# @app.get("/health", response_model=HealthResponse)
+# async def health_check():
+#     """Check if the service is healthy and model is loaded."""
+#     from inference import _model
+#     return HealthResponse(
+#         status="healthy",
+#         model_loaded=_model is not None,
+#         demo_mode=is_demo_mode()
+#     )
 
 
 @app.get("/llm_status")
@@ -202,6 +207,39 @@ async def submit_demographics(data: DemographicData):
     }
 
 
+@app.post("/upload_cv")
+async def upload_cv(file: UploadFile = File(...)):
+    global CV_TEXT
+
+    try:
+        # Check file type
+        if not file.filename.lower().endswith(".pdf"):
+            raise HTTPException(status_code=400, detail="Only PDF files are supported")
+
+        contents = await file.read()
+
+        path = "uploaded_cv.pdf"
+        with open(path, "wb") as f:
+            f.write(contents)
+
+        # Extract text
+        doc = pymupdf.open(path)
+
+        text = ""
+        for page in doc:
+            text += page.get_text()
+
+        from llm_utils import summarize_cv
+        CV_TEXT = summarize_cv(text)
+
+        print("✓ CV uploaded successfully")
+        print("Extracted characters:", len(text))
+
+        return {"status": "success"}
+
+    except Exception as e:
+        print("❌ CV processing error:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 @app.get("/demographic.css")
 async def get_css():
     """Serve the demographic CSS file."""
@@ -239,7 +277,9 @@ async def start_interview(llm_mode: bool = False):
                 demographics = json.load(f)
     except Exception as e:
         print(f"[WARNING] Could not load demographics: {e}")
-    
+    global CV_TEXT
+    if CV_TEXT:
+        demographics["cv_text"] = CV_TEXT[:2000]
     total_questions = 5
     
     # Generate first question based on mode
@@ -505,4 +545,4 @@ async def analyze_speech(audio: UploadFile = File(...), force_demo: bool = False
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
