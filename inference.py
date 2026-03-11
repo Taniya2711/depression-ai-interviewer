@@ -78,7 +78,8 @@ def predict_phq(audio_path: str) -> dict:
         return {
             "phq_score": prediction,
             "demo_mode": False,
-            "features_extracted": True
+            "features_extracted": True,
+            "message": f"PHQ-8 score predicted: {prediction:.1f}"
         }
     
     # DEMO MODE: Return a mock score based on emotion features
@@ -99,7 +100,7 @@ def predict_phq_from_features(features: np.ndarray) -> float:
     Predict PHQ-8 score from pre-extracted features.
     
     Args:
-        features: numpy array of shape (28,) containing emotion features
+        features: numpy array of shape (3 * num_labels,) — e.g. (6,) for 2 labels
     
     Returns:
         Predicted PHQ-8 score (0-24)

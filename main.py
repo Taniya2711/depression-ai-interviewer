@@ -65,7 +65,7 @@ class AnalysisResponse(BaseModel):
     """Response model for speech analysis."""
     phq_score: float
     demo_mode: bool = False
-    message: str = None
+    message: Optional[str] = None
 
 
 class HealthResponse(BaseModel):
@@ -164,6 +164,21 @@ async def health_check():
         model_loaded=_model is not None,
         demo_mode=is_demo_mode()
     )
+
+
+@app.get("/model_status")
+async def model_status():
+    """Check if the SER model is cached and ready."""
+    from audio_utils import _ser_pipeline, _ser_pipeline_error, _is_model_cached, SER_MODEL_NAME
+    return {
+        "ser_model_cached": _is_model_cached(SER_MODEL_NAME),
+        "ser_pipeline_loaded": _ser_pipeline is not None,
+        "ser_error": _ser_pipeline_error,
+        "message": (
+            "SER model ready" if _ser_pipeline is not None
+            else "Run 'python download_model.py' to download the SER model (~1.2 GB)"
+        )
+    }
 
 
 @app.get("/llm_status")
@@ -496,6 +511,14 @@ async def analyze_speech(audio: UploadFile = File(...), force_demo: bool = False
         # Cleanup temp file
         if tmp_path and os.path.exists(tmp_path):
             os.unlink(tmp_path)
+    
+    # Safety: if result is still None (shouldn't happen, but defensive)
+    if result is None:
+        result = {
+            "phq_score": 5.0,
+            "demo_mode": True,
+            "message": "Unexpected error during prediction. Using fallback score."
+        }
     
     return AnalysisResponse(
         phq_score=result["phq_score"],

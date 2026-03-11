@@ -42,8 +42,45 @@ FFMPEG_PATHS = [
 ]
 
 
+def _is_model_cached(model_name: str) -> bool:
+    """Check if the HuggingFace model is already downloaded in the local cache."""
+    try:
+        from huggingface_hub import try_to_load_from_cache
+        # Check if the key file exists in cache
+        result = try_to_load_from_cache(model_name, "model.safetensors")
+        if result is not None and not isinstance(result, str):
+            return False
+        return result is not None
+    except ImportError:
+        pass
+
+    # Fallback: check default HF cache directory
+    try:
+        cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "huggingface", "hub")
+        model_dir_name = "models--" + model_name.replace("/", "--")
+        model_dir = os.path.join(cache_dir, model_dir_name)
+        if os.path.isdir(model_dir):
+            # Check if snapshots folder has content (model was fully downloaded)
+            snapshots = os.path.join(model_dir, "snapshots")
+            if os.path.isdir(snapshots) and os.listdir(snapshots):
+                return True
+    except Exception:
+        pass
+    return False
+
+
+SER_MODEL_NAME = "jonatasgrosman/wav2vec2-large-xlsr-53-english"
+
+# Timeout for model loading (seconds). Set to 0 to disable.
+SER_LOAD_TIMEOUT = int(os.environ.get("SER_LOAD_TIMEOUT", "120"))
+
+
 def get_ser_pipeline():
-    """Load the pretrained wav2vec2 emotion classification pipeline."""
+    """Load the pretrained wav2vec2 emotion classification pipeline.
+    
+    If the model is not cached locally, skips download to avoid stalling
+    the server. Run `python download_model.py` first to pre-download.
+    """
     global _ser_pipeline, _ser_pipeline_error
     
     if _ser_pipeline_error:
@@ -54,15 +91,34 @@ def get_ser_pipeline():
             _ser_pipeline_error = "Torch not available"
             return None
         
+        # Check if model is already cached before attempting to load
+        if not _is_model_cached(SER_MODEL_NAME):
+            print(f"[WARNING] Model '{SER_MODEL_NAME}' is NOT cached locally.")
+            print("[WARNING] Downloading ~1.2 GB during inference causes stalls.")
+            print("[WARNING] Run 'python download_model.py' first to pre-download.")
+            print("[INFO] Falling back to mock emotion features for now.")
+            _ser_pipeline_error = "Model not cached. Run: python download_model.py"
+            return None
+        
         try:
+            print(f"[INFO] Loading SER model from local cache...")
+            # Set environment variable to prevent re-downloading
+            os.environ["HF_HUB_OFFLINE"] = "1"
+            
             device = 0 if torch.cuda.is_available() else -1
             _ser_pipeline = pipeline(
                 "audio-classification",
-                model="jonatasgrosman/wav2vec2-large-xlsr-53-english",
+                model=SER_MODEL_NAME,
                 device=device
             )
+            print("[SUCCESS] SER pipeline loaded from cache.")
+            
+            # Reset offline mode so other things can download if needed
+            os.environ.pop("HF_HUB_OFFLINE", None)
         except Exception as e:
+            os.environ.pop("HF_HUB_OFFLINE", None)
             print(f"[ERROR] Failed to load SER pipeline: {e}")
+            print("[INFO] Run 'python download_model.py' to download the model.")
             _ser_pipeline_error = str(e)
             return None
     
@@ -190,37 +246,31 @@ def ensure_wav(audio_path: str) -> str:
         raise ValueError(f"Could not convert audio to WAV format: {e}")
 
 
-def extract_emotion_features(audio_path: str) -> dict:
+def extract_emotion_features(audio_path: str) -> np.ndarray:
     """
     Extract emotion features from audio using wav2vec2 SER model.
-    Returns dict mapping emotion names to scores (0-1).
-    If model unavailable, returns mock features.
+    Returns matrix of shape (num_chunks, num_labels) with scores in pipeline
+    output order — this EXACTLY matches the training notebook's
+    extract_emotion_features() which does [x["score"] for x in p].
+    If model unavailable, returns mock feature matrix.
     """
     pipeline_obj = get_ser_pipeline()
     
     # Load audio
     y, sr = librosa.load(audio_path, sr=SAMPLE_RATE, mono=True)
     
-    # If pipeline unavailable, return mock features
+    # If pipeline unavailable, return mock feature matrix
     if pipeline_obj is None:
         print("[WARNING] SER pipeline unavailable - using mock features")
-        # Return mock emotion features for demo mode
-        return {
-            'sad': {'mean': 0.3, 'std': 0.1, 'min': 0.2, 'max': 0.5},
-            'angry': {'mean': 0.2, 'std': 0.1, 'min': 0.1, 'max': 0.4},
-            'happy': {'mean': 0.4, 'std': 0.15, 'min': 0.2, 'max': 0.7},
-            'fearful': {'mean': 0.25, 'std': 0.1, 'min': 0.1, 'max': 0.5},
-            'neutral': {'mean': 0.5, 'std': 0.1, 'min': 0.3, 'max': 0.7},
-            'disgusted': {'mean': 0.15, 'std': 0.08, 'min': 0.05, 'max': 0.4},
-            'surprised': {'mean': 0.35, 'std': 0.12, 'min': 0.1, 'max': 0.6},
-        }
+        # Return mock feature matrix matching expected shape (1 chunk, 2 labels)
+        return np.array([[0.6, 0.4]])
     
     try:
-        # Sliding window approach
+        # Sliding window approach (matches training notebook's chunk_audio + loop)
         window_samples = int(WINDOW_SEC * SAMPLE_RATE)
         hop_samples = int(HOP_SEC * SAMPLE_RATE)
         
-        all_emotions = []
+        all_scores = []
         
         for start in range(0, len(y) - window_samples + 1, hop_samples):
             chunk = y[start:start + window_samples]
@@ -228,72 +278,57 @@ def extract_emotion_features(audio_path: str) -> dict:
             # Run through SER pipeline
             results = pipeline_obj(chunk, sampling_rate=SAMPLE_RATE)
             
-            # Convert to dict
-            emotion_dict = {r['label']: r['score'] for r in results}
-            all_emotions.append(emotion_dict)
+            # Take scores in pipeline return order (sorted by score desc)
+            # This matches the training notebook: [x["score"] for x in p]
+            scores = [r['score'] for r in results]
+            all_scores.append(scores)
         
-        if not all_emotions:
+        if not all_scores:
             # Audio too short - use the whole thing
             results = pipeline_obj(y, sampling_rate=SAMPLE_RATE)
-            emotion_dict = {r['label']: r['score'] for r in results}
-            all_emotions.append(emotion_dict)
+            scores = [r['score'] for r in results]
+            all_scores.append(scores)
         
-        # Aggregate emotions across all windows
-        emotion_names = list(all_emotions[0].keys())
-        aggregated = {}
-        
-        for emotion in emotion_names:
-            values = [window[emotion] for window in all_emotions]
-            aggregated[emotion] = {
-                'mean': np.mean(values),
-                'std': np.std(values),
-                'min': np.min(values),
-                'max': np.max(values),
-            }
-        
-        return aggregated
+        mat = np.array(all_scores)
+        num_labels = mat.shape[1] if mat.ndim > 1 else len(all_scores[0])
+        print(f"[DEBUG] SER returned {num_labels} labels across {len(all_scores)} chunks")
+        return mat
     except Exception as e:
         print(f"[WARNING] SER feature extraction failed: {e} - using mock features")
-        # Return mock features on error
-        return {
-            'sad': {'mean': 0.3, 'std': 0.1, 'min': 0.2, 'max': 0.5},
-            'angry': {'mean': 0.2, 'std': 0.1, 'min': 0.1, 'max': 0.4},
-            'happy': {'mean': 0.4, 'std': 0.15, 'min': 0.2, 'max': 0.7},
-            'fearful': {'mean': 0.25, 'std': 0.1, 'min': 0.1, 'max': 0.5},
-            'neutral': {'mean': 0.5, 'std': 0.1, 'min': 0.3, 'max': 0.7},
-            'disgusted': {'mean': 0.15, 'std': 0.08, 'min': 0.05, 'max': 0.4},
-            'surprised': {'mean': 0.35, 'std': 0.12, 'min': 0.1, 'max': 0.6},
-        }
+        # Return mock feature matrix on error
+        return np.array([[0.6, 0.4]])
 
 
 def extract_features_from_file(audio_path: str) -> np.ndarray:
     """
     Extract feature vector from audio file.
-    This matches the feature extraction in the training notebook.
+    EXACTLY matches the training notebook's aggregate_features():
+        mean = mat.mean(axis=0)
+        std  = mat.std(axis=0)
+        maxv = mat.max(axis=0)
+        return np.concatenate([mean, std, maxv])
     
     Returns:
-        numpy array of shape (28,) - 7 emotions × 4 statistics each
+        numpy array of shape (3 * num_labels,) — e.g. 6 for 2 labels
     """
     # Ensure audio is WAV format
     wav_path = ensure_wav(audio_path)
     
     try:
-        # Extract emotions
-        emotions = extract_emotion_features(wav_path)
+        # Extract emotion feature matrix: shape (num_chunks, num_labels)
+        # Scores are in pipeline output order (same as training notebook)
+        mat = extract_emotion_features(wav_path)
         
-        # Flatten to feature vector
-        # Order: for each emotion, output [mean, std, min, max]
-        feature_vec = []
-        for emotion_name in sorted(emotions.keys()):  # Sort for consistency
-            stats = emotions[emotion_name]
-            feature_vec.extend([
-                stats['mean'],
-                stats['std'],
-                stats['min'],
-                stats['max']
-            ])
+        # Aggregate exactly like the training notebook's aggregate_features()
+        mean = mat.mean(axis=0)
+        std  = mat.std(axis=0)
+        maxv = mat.max(axis=0)
+        feature_vec = np.concatenate([mean, std, maxv])
         
-        return np.array(feature_vec, dtype=np.float32)
+        num_labels = mat.shape[1] if mat.ndim > 1 else mat.shape[0]
+        print(f"[DEBUG] Feature vector length: {len(feature_vec)} (from {num_labels} labels × 3 stats)")
+        
+        return feature_vec.astype(np.float32)
     
     finally:
         # Cleanup temporary WAV file if created

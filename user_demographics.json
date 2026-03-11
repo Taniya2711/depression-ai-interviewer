@@ -1,15 +1,17 @@
 {
-  "name": null,
-  "age": null,
-  "gender": null,
-  "country": null,
-  "role": null,
-  "stage": null,
-  "focus": null,
-  "sleep_duration": null,
-  "workload": null,
-  "screen_time": null,
-  "living_situation": null,
-  "support_system": null,
-  "stressors": []
+  "name": "Sourendra Nandi",
+  "age": "20",
+  "gender": "Male",
+  "country": "india",
+  "role": "Undergraduate Student",
+  "stage": "Early Stage",
+  "focus": "Research",
+  "sleep_duration": "5-6 hours",
+  "workload": "Very High",
+  "screen_time": "8+ hours",
+  "living_situation": "With Family",
+  "support_system": "Moderate",
+  "stressors": [
+    "Academic pressure"
+  ]
 }
