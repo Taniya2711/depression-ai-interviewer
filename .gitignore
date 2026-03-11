@@ -26,7 +26,7 @@ build/
 *.mp3
 *.webm
 *.ogg
-uploaded_cv.pdf
+*.pdf
 # IDE
 .vscode/
 .idea/
