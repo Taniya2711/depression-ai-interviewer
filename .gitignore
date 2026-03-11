@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 *.so
 .Python
 venv/
@@ -25,7 +26,7 @@ build/
 *.mp3
 *.webm
 *.ogg
-
+uploaded_cv.pdf
 # IDE
 .vscode/
 .idea/
