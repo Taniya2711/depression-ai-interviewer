@@ -1,16 +1,16 @@
 {
-  "name": "Sourendra Nandi",
-  "age": "20",
+  "name": "Lalit Karthikeyan M A",
+  "age": "19",
   "gender": "Male",
-  "country": "india",
+  "country": "India",
   "role": "Undergraduate Student",
-  "stage": "Early Stage",
+  "stage": "Mid Stage",
   "focus": "Research",
-  "sleep_duration": "5-6 hours",
-  "workload": "Very High",
-  "screen_time": "8+ hours",
-  "living_situation": "With Family",
-  "support_system": "Moderate",
+  "sleep_duration": "6-7 hours",
+  "workload": "Moderate",
+  "screen_time": null,
+  "living_situation": null,
+  "support_system": null,
   "stressors": [
     "Academic pressure"
   ]

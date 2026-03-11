@@ -3,7 +3,7 @@ services:
     name: mindspace-demo
     runtime: python
     python:
-      version: "3.11"
+      version: "3.12"
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     plan: free
@@ -11,4 +11,4 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: PYTHON_VERSION
-        value: "3.11.11"
+        value: "3.12.0"
